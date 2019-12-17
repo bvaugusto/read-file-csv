@@ -1,0 +1,243 @@
+Index - src/index.js
+
+const CSV = require('./services/csv-service')
+const SaveData = require('./services/save-data')
+const FunctionsUtil = require('./functions/functions-util')
+const functionsUtil = new FunctionsUtil()
+
+const fetchData = async (fileName) => {
+    if (fileName === undefined) {
+        return []
+    }
+
+    const csv = new CSV()
+    return await csv.fetchDataCSV(fileName)
+}
+
+const saveDataFile = arrayCombine => {
+    if (arrayCombine === undefined) {
+        return false
+    }
+
+    let dataFile = []
+    arrayCombine.forEach(val => {
+        dataFile.push(val.NAME)
+    })
+    const saveData = new SaveData()
+    saveData.saveDataToFile(dataFile)
+}
+
+try {
+
+    let arrayDataset1 = []
+    let arrayDataset2 = []
+    let arrayCombine = []
+    
+    fetchData('dataset1').then((value) => {
+        arrayDataset1.push(value)
+    })
+
+    fetchData('dataset2').then((value) => {
+        arrayDataset2.push(value)
+    })
+
+    setTimeout(() => {
+        arrayCombine = functionsUtil.combineArray(arrayDataset1[0], arrayDataset2[0])
+        arrayCombine = functionsUtil.addSpeedKeyInArray(arrayCombine)
+        arrayCombine = functionsUtil.sortDataObject(arrayCombine)
+        saveDataFile(arrayCombine)
+    }, 100);
+
+    console.log("Dados gerados com sucesso!")
+
+} catch (error) {
+    console.log(error)
+}
+
+
+Test - src/test/index.js
+
+const CSV = require('../services/csv-service')
+const csv = new CSV()
+
+const FunctionsUtil = require('../functions/functions-util')
+const functionsUtil = new FunctionsUtil()
+
+const should = require('should')
+
+const array = [
+    { NAME: 'Hadrosaurus', LEG_LENGTH: '1.2', DIET: 'herbivore' },
+  { NAME: 'Struthiomimus', LEG_LENGTH: '0.92', DIET: 'omnivore' },
+  { NAME: 'Velociraptor', LEG_LENGTH: '1.0', DIET: 'carnivore' },
+  { NAME: 'Triceratops', LEG_LENGTH: '0.87', DIET: 'herbivore' },
+  { NAME: 'Euoplocephalus', LEG_LENGTH: '1.6', DIET: 'herbivore' },
+  { NAME: 'Stegosaurus', LEG_LENGTH: '1.40', DIET: 'herbivore' },
+  { NAME: 'Tyrannosaurus Rex', LEG_LENGTH: '2.5', DIET: 'carnivore' }
+]
+
+const array2 = [
+    {NAME: 'Euoplocephalus', STRIDE_LENGTH: '1.87', STANCE: 'quadrupedal'},
+    {NAME: 'Stegosaurus', STRIDE_LENGTH: '1.90', STANCE: 'quadrupedal' },
+    {NAME: 'Tyrannosaurus Rex', STRIDE_LENGTH: '5.76', STANCE: 'bipedal'},
+    {NAME: 'Hadrosaurus', STRIDE_LENGTH: '1.4', STANCE: 'bipedal' },
+    {NAME: 'Deinonychus', STRIDE_LENGTH: '1.21', STANCE: 'bipedal' },
+    {NAME: 'Struthiomimus', STRIDE_LENGTH: '1.34', STANCE: 'bipedal' },
+    {NAME: 'Velociraptor', STRIDE_LENGTH: '2.72', STANCE: 'bipedal' }
+]
+
+const arrayCombine = [
+    {NAME: 'Hadrosaurus',LEG_LENGTH: '1.2',DIET: 'herbivore',STRIDE_LENGTH: '1.4',STANCE: 'bipedal'},
+    {NAME: 'Struthiomimus',LEG_LENGTH: '0.92',DIET: 'omnivore',STRIDE_LENGTH: '1.34',STANCE: 'bipedal'},
+    {NAME: 'Velociraptor',LEG_LENGTH: '1.0',DIET: 'carnivore',STRIDE_LENGTH: '2.72',STANCE: 'bipedal'},
+    {NAME: 'Tyrannosaurus Rex',LEG_LENGTH: '2.5',DIET: 'carnivore',STRIDE_LENGTH: '5.76',STANCE: 'bipedal'}
+]
+
+describe('find dataset 1', () => {
+    it('valida dataset 1', () => {
+        csv.fetchDataCSV('dataset1').should.be.equal(csv.fetchDataCSV('dataset1'))
+    })
+})
+
+describe('find dataset 2', () => {
+    it('valida dataset 2', () => {
+        csv.fetchDataCSV('dataset2').should.be.equal(csv.fetchDataCSV('dataset2'))
+    })
+})
+
+describe('Combine 2 Arrays', () => {
+    it('Union 2 array', () => {
+        functionsUtil.combineArray(array, array2).should.be.equal(functionsUtil.combineArray(array, array2))
+    })
+})
+
+describe('Add key add key and value in array', () => {
+    it('Add Speed Key In Array', () => {
+        functionsUtil.addSpeedKeyInArray(arrayCombine).should.be.equal(functionsUtil.addSpeedKeyInArray(arrayCombine))
+    })
+})
+
+describe('Calculate Speec', () => {
+    it('Calculete Speed', (sarrayCombine) => {
+        functionsUtil.calculateSpeed(strideLength, legLength).should.be.equal(functionsUtil.calculateSpeed(strideLength, legLength))
+    })
+})
+
+describe('Funciton sort passa', () => {
+    it('Calculete Speed', (sarrayCombine) => {
+        functionsUtil.sortDataObject(arrayCombine).should.be.equal(functionsUtil.sortDataObject(arrayCombine))
+    })
+})
+
+
+Services - src/services/save-data.js
+
+const fs = require('fs')
+
+class SaveData {
+
+    static filepath = 'src/file/'
+
+    saveDataToFile = data => new Promise((resolve, reject) => {
+        fs.writeFile(SaveData.filepath+'output.txt', data, (err) => { 
+            if (err) throw err; 
+        })  
+    })
+}
+
+module.exports = SaveData
+
+
+
+CSV - src/services/csv-service.js
+
+
+const fast = require('fast-csv')
+const fs = require('fs')
+
+class CSV {
+
+    static filepath = 'src/file/'
+
+    fetchDataCSV = fileName => new Promise((resolve, reject) => {
+        
+        if (fileName === undefined) {
+            reject([])
+        }
+    
+        const arrayRows = []
+        const filepath = CSV.filepath+fileName+'.csv'
+    
+        fs.createReadStream(filepath).pipe(fast.parse({ headers: true }))
+        .on('data', row => {
+            arrayRows.push(row)
+        })
+        .on('end', () => {
+            return resolve(arrayRows)
+        })
+    })
+}
+
+module.exports = CSV
+
+
+
+Functions - src/functions/functions-util.js
+
+
+class FunctionsUtil {
+
+    static gravitationalConstant = 9.8
+
+    sortDataObject = (arrayCombine) => {
+        
+        if (arrayCombine === undefined) {
+            return []
+        }
+        
+        return arrayCombine.sort(function(a,b) {
+            return a.SPEED < b.SPEED ? -1 : a.SPEED > b.SPEED ? 1 : 0;
+        });
+    }
+
+    calculateSpeed = (strideLength, legLength) => {
+
+        if (strideLength === undefined || legLength === undefined) {
+            return ''
+        }
+
+        return ((strideLength /legLength) - 1) * Math.sqrt(legLength * Number.parseFloat(FunctionsUtil.gravitationalConstant))
+    }
+
+    addSpeedKeyInArray = (arrayCombine) => {
+
+        if (arrayCombine === undefined) {
+            return []
+        }
+
+        arrayCombine.forEach(val => {
+            val.SPEED = this.calculateSpeed(val.STRIDE_LENGTH, val.LEG_LENGTH)
+        })
+    
+        return arrayCombine
+    }
+
+    combineArray = (array1, array2) => {
+
+        if (array1 === undefined || array2 === undefined) {
+            return []
+        }
+
+        let combineArray = []
+        array1.forEach(element1 => {
+            array2.forEach(element2 => {
+                if ((element1.NAME === element2.NAME) && (element2.STANCE === 'bipedal')) {
+                    combineArray.push({...element1, ...element2})
+                }
+            })
+        });
+
+        return combineArray;
+    }
+}
+
+module.exports = FunctionsUtil

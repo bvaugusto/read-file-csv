@@ -1,0 +1,20 @@
+{
+  "name": "read-file-csv",
+  "version": "1.0.0",
+  "description": "Scan .csv files and display the names of biped dinosaurs from fastest to slowest",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "mocha ./src/test/index.js",
+    "start": "node ./src/index.js"
+  },
+  "author": "Bruno Vasconcellos Augusto",
+  "license": "ISC",
+  "dependencies": {
+    "csv-parse": "^4.8.2",
+    "fast-csv": "^3.4.0"
+  },
+  "devDependencies": {
+    "mocha": "^6.2.2",
+    "should": "^13.2.3"
+  }
+}
