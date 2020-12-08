@@ -11,7 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "csv-parse": "^4.8.2",
-    "fast-csv": "^3.4.0"
+    "fast-csv": "^4.3.6"
   },
   "devDependencies": {
     "mocha": "^6.2.2",
